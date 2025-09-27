@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 interface CoordinateMessage {
-  type: "rssi_start" | "rssi_target";
+  type: "rssi_start" | "rssi_target" | "rssi_path";
   x: number;
   y: number;
 }
@@ -18,6 +18,13 @@ export function useWebSocket(url: string) {
     x: number;
     y: number;
   } | null>(null);
+  const [pathCoords, setPathCoords] = useState<Array<{ x: number; y: number }>>(
+    []
+  );
+  const [currentPos, setCurrentPos] = useState<{ x: number; y: number } | null>(
+    null
+  );
+
   const wsRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
@@ -30,11 +37,22 @@ export function useWebSocket(url: string) {
     ws.onmessage = (event) => {
       try {
         const msg = JSON.parse(event.data) as CoordinateMessage;
+
         if (msg.type === "rssi_start") {
           setStartCoords({ x: msg.x, y: msg.y });
+          setPathCoords((prev) => {
+            const newTrail = [...prev, { x: msg.x, y: msg.y }];
+            setCurrentPos({ x: msg.x, y: msg.y });
+            return newTrail;
+          });
         } else if (msg.type === "rssi_target") {
           setTargetCoords({ x: msg.x, y: msg.y });
-        } else if (msg.type === "rssi_target") {
+        } else if (msg.type === "rssi_path") {
+          setPathCoords((prev) => {
+            const newTrail = [...prev, { x: msg.x, y: msg.y }];
+            setCurrentPos({ x: msg.x, y: msg.y });
+            return newTrail;
+          });
         }
       } catch (e) {
         console.error("Failed to parse WS message:", e);
@@ -46,5 +64,5 @@ export function useWebSocket(url: string) {
     };
   }, [url]);
 
-  return { status, startCoords, targetCoords };
+  return { status, startCoords, targetCoords, currentPos, pathCoords };
 }

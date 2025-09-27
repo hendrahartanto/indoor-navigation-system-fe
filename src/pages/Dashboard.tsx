@@ -19,6 +19,7 @@ interface LocationDisplayProps {
   device: IoTDevice;
   start?: { x: number; y: number } | null;
   target?: { x: number; y: number } | null;
+  path?: Array<{ x: number; y: number }>;
   width?: number;
   height?: number;
   showGrid?: boolean;
@@ -30,6 +31,7 @@ const IoTLocationDisplay: React.FC<LocationDisplayProps> = ({
   device,
   start,
   target,
+  path = [],
   width = 500,
   height = 400,
   showGrid = true,
@@ -50,6 +52,10 @@ const IoTLocationDisplay: React.FC<LocationDisplayProps> = ({
   const devicePixelPos = getPixelPosition(device.location.x, device.location.y);
   const startPixelPos = start ? getPixelPosition(start.x, start.y) : null;
   const targetPixelPos = target ? getPixelPosition(target.x, target.y) : null;
+
+  // Convert path to pixel positions
+  const pathPixels = path.map((p) => getPixelPosition(p.x, p.y));
+  const pathPoints = pathPixels.map((p) => `${p.x},${p.y}`).join(" ");
 
   const gridLines = [];
   const padding = 40;
@@ -188,6 +194,39 @@ const IoTLocationDisplay: React.FC<LocationDisplayProps> = ({
             {gridLines}
             {axisLabels}
 
+            {/* Path Trail */}
+            {pathPixels.length > 1 && (
+              <polyline
+                points={pathPoints}
+                fill="none"
+                stroke="url(#pathGradient)"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                style={{ filter: "drop-shadow(0px 1px 3px rgba(0,0,0,0.2))" }}
+              />
+            )}
+
+            <defs>
+              <linearGradient id="pathGradient" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stopColor="rgb(191, 219, 254)" />{" "}
+                {/* blue-200 */}
+                <stop offset="100%" stopColor="rgb(59, 130, 246)" />{" "}
+                {/* blue-500 */}
+              </linearGradient>
+            </defs>
+
+            {/* Small dots on path */}
+            {/* {pathPixels.map((p, idx) => (
+              <circle
+                key={`dot-${idx}`}
+                cx={p.x}
+                cy={p.y}
+                r="2"
+                fill="rgb(96,165,250)"
+              />
+            ))} */}
+
             {/* START marker */}
             {startPixelPos && (
               <g>
@@ -195,7 +234,7 @@ const IoTLocationDisplay: React.FC<LocationDisplayProps> = ({
                   cx={startPixelPos.x}
                   cy={startPixelPos.y}
                   r="7"
-                  fill="rgb(34,197,94)" // green-500
+                  fill="rgb(34,197,94)"
                   stroke="white"
                   strokeWidth="2"
                 />
@@ -217,7 +256,7 @@ const IoTLocationDisplay: React.FC<LocationDisplayProps> = ({
                   cx={targetPixelPos.x}
                   cy={targetPixelPos.y}
                   r="7"
-                  fill="rgb(239,68,68)" // red-500
+                  fill="rgb(239,68,68)"
                   stroke="white"
                   strokeWidth="2"
                 />
@@ -256,8 +295,7 @@ const IoTLocationDisplay: React.FC<LocationDisplayProps> = ({
             className="absolute bg-gray-900 text-white text-xs rounded px-2 py-1 pointer-events-none transform -translate-x-1/2 -translate-y-full"
             style={{ left: devicePixelPos.x, top: devicePixelPos.y - 10 }}
           >
-            {" "}
-            ({device.location.x.toFixed(1)}, {device.location.y.toFixed(1)}){" "}
+            ({device.location.x.toFixed(1)}, {device.location.y.toFixed(1)})
           </div>
         </div>
       </div>
@@ -265,18 +303,23 @@ const IoTLocationDisplay: React.FC<LocationDisplayProps> = ({
   );
 };
 
+// ---------- Demo Component ----------
 const IoTLocationDemo: React.FC = () => {
-  const { startCoords, targetCoords } = useWebSocket("ws://localhost:8000/ws");
+  console.log(import.meta.env.VITE_BACKEND_URL);
+
+  const { startCoords, targetCoords, pathCoords } = useWebSocket(
+    `${import.meta.env.VITE_WS_BACKEND_URL}/ws`
+  );
 
   const [device, setDevice] = useState({
     id: "IOT-001",
     name: "Indoor Sensor",
-    location: { x: 45, y: 60, timestamp: new Date() },
+    location: { x: 0, y: 0, timestamp: new Date() },
     isOnline: true,
   });
 
   const currentPos = useRef({ x: device.location.x, y: device.location.y });
-  const animationRef = useRef<number>(null);
+  const animationRef = useRef<number | null>(null);
 
   const animateTo = (targetX: number, targetY: number, duration = 500) => {
     if (animationRef.current) cancelAnimationFrame(animationRef.current);
@@ -297,20 +340,18 @@ const IoTLocationDemo: React.FC = () => {
         location: { x: newX, y: newY, timestamp: new Date() },
       }));
 
-      if (t < 1) {
-        animationRef.current = requestAnimationFrame(step);
-      }
+      if (t < 1) animationRef.current = requestAnimationFrame(step);
     };
 
     animationRef.current = requestAnimationFrame(step);
   };
 
-  // animasi bergerak mengikuti target jika targetCoords berubah
   useEffect(() => {
-    if (targetCoords) {
-      animateTo(targetCoords.x, targetCoords.y, 700);
+    if (pathCoords.length > 0) {
+      const lastIndex = pathCoords.length - 1;
+      animateTo(pathCoords[lastIndex].x, pathCoords[lastIndex].y, 700);
     }
-  }, [targetCoords]);
+  }, [pathCoords, startCoords]);
 
   return (
     <div className="container mx-auto py-6 space-y-6">
@@ -325,6 +366,7 @@ const IoTLocationDemo: React.FC = () => {
         device={device}
         start={startCoords}
         target={targetCoords}
+        path={pathCoords}
         width={600}
         height={450}
         showGrid
