@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { MapPin, Activity } from "lucide-react";
-import axios from "axios";
+import { useWebSocket } from "../hooks/use-web-socket";
 
 interface DeviceLocation {
   x: number;
@@ -17,6 +17,8 @@ interface IoTDevice {
 
 interface LocationDisplayProps {
   device: IoTDevice;
+  start?: { x: number; y: number } | null;
+  target?: { x: number; y: number } | null;
   width?: number;
   height?: number;
   showGrid?: boolean;
@@ -26,6 +28,8 @@ interface LocationDisplayProps {
 
 const IoTLocationDisplay: React.FC<LocationDisplayProps> = ({
   device,
+  start,
+  target,
   width = 500,
   height = 400,
   showGrid = true,
@@ -37,23 +41,22 @@ const IoTLocationDisplay: React.FC<LocationDisplayProps> = ({
     const padding = 40;
     const usableWidth = width - padding * 2;
     const usableHeight = height - padding * 2;
-
     return {
       x: padding + (x / 100) * usableWidth,
-      y: padding + ((100 - y) / 100) * usableHeight, // Invert Y axis so 0,0 is bottom-left
+      y: padding + ((100 - y) / 100) * usableHeight,
     };
   };
 
   const devicePixelPos = getPixelPosition(device.location.x, device.location.y);
+  const startPixelPos = start ? getPixelPosition(start.x, start.y) : null;
+  const targetPixelPos = target ? getPixelPosition(target.x, target.y) : null;
 
-  // Generate grid lines
   const gridLines = [];
   const padding = 40;
   const usableWidth = width - padding * 2;
   const usableHeight = height - padding * 2;
 
   if (showGrid) {
-    // Vertical lines
     for (let i = 0; i <= 10; i++) {
       const x = padding + (i / 10) * usableWidth;
       gridLines.push(
@@ -70,7 +73,6 @@ const IoTLocationDisplay: React.FC<LocationDisplayProps> = ({
       );
     }
 
-    // Horizontal lines
     for (let i = 0; i <= 10; i++) {
       const y = padding + (i / 10) * usableHeight;
       gridLines.push(
@@ -88,10 +90,8 @@ const IoTLocationDisplay: React.FC<LocationDisplayProps> = ({
     }
   }
 
-  // Generate axis labels
   const axisLabels = [];
   if (showCoordinates) {
-    // X-axis labels
     for (let i = 0; i <= 10; i += 2) {
       const x = padding + (i / 10) * usableWidth;
       axisLabels.push(
@@ -107,7 +107,6 @@ const IoTLocationDisplay: React.FC<LocationDisplayProps> = ({
       );
     }
 
-    // Y-axis labels
     for (let i = 0; i <= 10; i += 2) {
       const y = padding + (i / 10) * usableHeight;
       axisLabels.push(
@@ -183,21 +182,58 @@ const IoTLocationDisplay: React.FC<LocationDisplayProps> = ({
       </div>
 
       <div className="right flex-1 border border-gray-200">
-        {/* 2D Grid Display */}
         <div className="relative overflow-hidden w-fit mx-auto">
           <svg width={width} height={height} className="block">
-            {/* Background */}
             <rect width={width} height={height} fill="white" />
-
-            {/* Grid lines */}
             {gridLines}
-
-            {/* Axis labels */}
             {axisLabels}
 
-            {/* Device position marker */}
+            {/* START marker */}
+            {startPixelPos && (
+              <g>
+                <circle
+                  cx={startPixelPos.x}
+                  cy={startPixelPos.y}
+                  r="7"
+                  fill="rgb(34,197,94)" // green-500
+                  stroke="white"
+                  strokeWidth="2"
+                />
+                <text
+                  x={startPixelPos.x}
+                  y={startPixelPos.y - 12}
+                  textAnchor="middle"
+                  className="text-xs fill-green-600"
+                >
+                  Start
+                </text>
+              </g>
+            )}
+
+            {/* TARGET marker */}
+            {targetPixelPos && (
+              <g>
+                <circle
+                  cx={targetPixelPos.x}
+                  cy={targetPixelPos.y}
+                  r="7"
+                  fill="rgb(239,68,68)" // red-500
+                  stroke="white"
+                  strokeWidth="2"
+                />
+                <text
+                  x={targetPixelPos.x}
+                  y={targetPixelPos.y - 12}
+                  textAnchor="middle"
+                  className="text-xs fill-red-600"
+                >
+                  Target
+                </text>
+              </g>
+            )}
+
+            {/* CURRENT device marker */}
             <g>
-              {/* Main device marker */}
               <circle
                 cx={devicePixelPos.x}
                 cy={devicePixelPos.y}
@@ -205,10 +241,7 @@ const IoTLocationDisplay: React.FC<LocationDisplayProps> = ({
                 fill="rgb(59, 130, 246)"
                 stroke="white"
                 strokeWidth="3"
-                className="transition-all duration-300 drop-shadow-lg"
               />
-
-              {/* Device icon */}
               <circle
                 cx={devicePixelPos.x}
                 cy={devicePixelPos.y}
@@ -216,36 +249,15 @@ const IoTLocationDisplay: React.FC<LocationDisplayProps> = ({
                 fill="white"
               />
             </g>
-
-            {/* Axis labels */}
-            <text
-              x={width / 2}
-              y={height - 5}
-              textAnchor="middle"
-              className="text-sm font-medium fill-gray-700"
-            >
-              X
-            </text>
-            <text
-              x={15}
-              y={height / 2}
-              textAnchor="middle"
-              className="text-sm font-medium fill-gray-700"
-              transform={`rotate(-90, 15, ${height / 2})`}
-            >
-              Y
-            </text>
           </svg>
 
-          {/* Coordinate tooltip */}
+          {/* Curr Coordinate Tooltip */}
           <div
             className="absolute bg-gray-900 text-white text-xs rounded px-2 py-1 pointer-events-none transform -translate-x-1/2 -translate-y-full"
-            style={{
-              left: devicePixelPos.x,
-              top: devicePixelPos.y - 10,
-            }}
+            style={{ left: devicePixelPos.x, top: devicePixelPos.y - 10 }}
           >
-            ({device.location.x.toFixed(1)}, {device.location.y.toFixed(1)})
+            {" "}
+            ({device.location.x.toFixed(1)}, {device.location.y.toFixed(1)}){" "}
           </div>
         </div>
       </div>
@@ -253,44 +265,55 @@ const IoTLocationDisplay: React.FC<LocationDisplayProps> = ({
   );
 };
 
-// Demo component with simulated real-time updates
 const IoTLocationDemo: React.FC = () => {
-  const [device, setDevice] = useState<IoTDevice>({
+  const { startCoords, targetCoords } = useWebSocket("ws://localhost:8000/ws");
+
+  const [device, setDevice] = useState({
     id: "IOT-001",
     name: "Indoor Sensor",
     location: { x: 45, y: 60, timestamp: new Date() },
     isOnline: true,
   });
 
-  const handleClick = async () => {
-    const res = await axios.get("http://148.230.101.206:8000/signal/toggle");
-    console.log(res);
-  };
+  const currentPos = useRef({ x: device.location.x, y: device.location.y });
+  const animationRef = useRef<number>(null);
 
-  // Simulate real-time location updates
-  useEffect(() => {
-    const interval = setInterval(() => {
+  const animateTo = (targetX: number, targetY: number, duration = 500) => {
+    if (animationRef.current) cancelAnimationFrame(animationRef.current);
+
+    const startX = currentPos.current.x;
+    const startY = currentPos.current.y;
+    const startTime = performance.now();
+
+    const step = (time: number) => {
+      const t = Math.min((time - startTime) / duration, 1);
+      const eased = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+      const newX = startX + (targetX - startX) * eased;
+      const newY = startY + (targetY - startY) * eased;
+      currentPos.current = { x: newX, y: newY };
+
       setDevice((prev) => ({
         ...prev,
-        location: {
-          x: Math.max(
-            0,
-            Math.min(100, prev.location.x + (Math.random() - 0.5) * 5)
-          ),
-          y: Math.max(
-            0,
-            Math.min(100, prev.location.y + (Math.random() - 0.5) * 5)
-          ),
-          timestamp: new Date(),
-        },
+        location: { x: newX, y: newY, timestamp: new Date() },
       }));
-    }, 2000);
 
-    return () => clearInterval(interval);
-  }, []);
+      if (t < 1) {
+        animationRef.current = requestAnimationFrame(step);
+      }
+    };
+
+    animationRef.current = requestAnimationFrame(step);
+  };
+
+  // animasi bergerak mengikuti target jika targetCoords berubah
+  useEffect(() => {
+    if (targetCoords) {
+      animateTo(targetCoords.x, targetCoords.y, 700);
+    }
+  }, [targetCoords]);
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto py-6 space-y-6">
       <div className="text-center">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
           IoT Device Location Tracker
@@ -300,15 +323,13 @@ const IoTLocationDemo: React.FC = () => {
 
       <IoTLocationDisplay
         device={device}
+        start={startCoords}
+        target={targetCoords}
         width={600}
         height={450}
-        showGrid={true}
-        showCoordinates={true}
+        showGrid
+        showCoordinates
       />
-
-      <button className="" onClick={handleClick}>
-        click me
-      </button>
     </div>
   );
 };
