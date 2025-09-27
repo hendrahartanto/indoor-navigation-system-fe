@@ -44,8 +44,8 @@ const IoTLocationDisplay: React.FC<LocationDisplayProps> = ({
     const usableWidth = width - padding * 2;
     const usableHeight = height - padding * 2;
     return {
-      x: padding + (x / 100) * usableWidth,
-      y: padding + ((100 - y) / 100) * usableHeight,
+      x: padding + (x / 10) * usableWidth,
+      y: padding + ((10 - y) / 10) * usableHeight,
     };
   };
 
@@ -108,7 +108,7 @@ const IoTLocationDisplay: React.FC<LocationDisplayProps> = ({
           textAnchor="middle"
           className="text-xs fill-gray-600"
         >
-          {i * 10}
+          {i}
         </text>
       );
     }
@@ -123,7 +123,7 @@ const IoTLocationDisplay: React.FC<LocationDisplayProps> = ({
           textAnchor="middle"
           className="text-xs fill-gray-600"
         >
-          {(10 - i) * 10}
+          {10 - i}
         </text>
       );
     }
