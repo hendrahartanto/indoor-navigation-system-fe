@@ -70,14 +70,14 @@ const DashboardPage = () => {
     }
   }, [pathCoords]);
 
-  // Convert coordinate system (0-100) to pixel positions
+  // Convert coordinate system (0-5) to pixel positions
   const getPixelPosition = (x: number, y: number) => {
     const padding = 40;
     const usableWidth = width - padding * 2;
     const usableHeight = height - padding * 2;
     return {
-      x: padding + (x / 10) * usableWidth,
-      y: padding + ((10 - y) / 10) * usableHeight,
+      x: padding + (x / 5) * usableWidth,
+      y: padding + ((5 - y) / 5) * usableHeight,
     };
   };
 
@@ -98,8 +98,8 @@ const DashboardPage = () => {
   const usableWidth = width - padding * 2;
   const usableHeight = height - padding * 2;
 
-  for (let i = 0; i <= 10; i++) {
-    const x = padding + (i / 10) * usableWidth;
+  for (let i = 0; i <= 5; i++) {
+    const x = padding + (i / 5) * usableWidth;
     gridLines.push(
       <line
         key={`v-${i}`}
@@ -114,8 +114,8 @@ const DashboardPage = () => {
     );
   }
 
-  for (let j = 0; j <= 10; j++) {
-    const y = padding + (j / 10) * usableHeight;
+  for (let j = 0; j <= 5; j++) {
+    const y = padding + (j / 5) * usableHeight;
     gridLines.push(
       <line
         key={`h-${j}`}
@@ -131,8 +131,8 @@ const DashboardPage = () => {
   }
 
   const axisLabels = [];
-  for (let i = 0; i <= 10; i += 2) {
-    const x = padding + (i / 10) * usableWidth;
+  for (let i = 0; i <= 5; i++) {
+    const x = padding + (i / 5) * usableWidth;
     axisLabels.push(
       <text
         key={`x-label-${i}`}
@@ -146,8 +146,8 @@ const DashboardPage = () => {
     );
   }
 
-  for (let i = 0; i <= 10; i += 2) {
-    const y = padding + (i / 10) * usableHeight;
+  for (let i = 0; i <= 5; i++) {
+    const y = padding + (i / 5) * usableHeight;
     axisLabels.push(
       <text
         key={`y-label-${i}`}
@@ -156,7 +156,7 @@ const DashboardPage = () => {
         textAnchor="middle"
         className="text-xs fill-gray-600"
       >
-        {10 - i}
+        {5 - i}
       </text>
     );
   }
