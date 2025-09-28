@@ -9,7 +9,6 @@ export default function WasdController({
   onCommand?: (key: KeyWASD, type: Phase) => void;
 }) {
   const [driveMode, setDriveMode] = useState(false);
-  // SINGLE active key instead of Set
   const [activeKey, setActiveKey] = useState<KeyWASD | null>(null);
   const activeKeyRef = useRef<KeyWASD | null>(null);
   useEffect(() => {
@@ -29,7 +28,6 @@ export default function WasdController({
     (key: KeyWASD, type: Phase) => {
       const now = performance.now();
       const last = lastEventRef.current;
-      // ignore immediate duplicate “up” (e.g., pointerup + pointerleave)
       if (
         type === "up" &&
         last &&
@@ -47,7 +45,6 @@ export default function WasdController({
     [onCommand]
   );
 
-  // --- Helpers to enforce single-press semantics ---
   const pressKey = useCallback(
     (key: KeyWASD) => {
       if (activeKey) return;
@@ -59,7 +56,6 @@ export default function WasdController({
 
   const releaseKey = useCallback(
     (key: KeyWASD) => {
-      // Only release if it's the currently active key
       if (activeKey !== key) return;
       trigger(key, "up");
       setActiveKey(null);
@@ -74,7 +70,6 @@ export default function WasdController({
     }
   }, [activeKey, trigger]);
 
-  // --- Keyboard handling (single press) ---
   useEffect(() => {
     if (!driveMode) return;
 
@@ -106,12 +101,10 @@ export default function WasdController({
       window.removeEventListener("keyup", onKeyUp);
       window.removeEventListener("blur", releaseAll);
       document.removeEventListener("visibilitychange", onVisibility);
-      // safety: clear on unmount
       releaseAll();
     };
   }, [driveMode, pressKey, releaseKey, releaseAll]);
 
-  // --- On-screen buttons via Pointer Events (single press) ---
   const pressStart = useCallback(
     (k: KeyWASD) => (e?: React.PointerEvent) => {
       if (!driveMode) return;
@@ -139,7 +132,6 @@ export default function WasdController({
 
   return (
     <div className="mt-4">
-      {/* Header / Mode */}
       <div className="mb-3 flex items-center justify-between rounded-xl border border-gray-200 bg-white/60 p-3 shadow-sm backdrop-blur-md dark:border-gray-200 dark:bg-white/10">
         <div className="flex items-center gap-3">
           <span
@@ -163,7 +155,6 @@ export default function WasdController({
           type="button"
           aria-pressed={driveMode}
           onClick={() => {
-            // turning off releases the active key
             if (driveMode) releaseAll();
             setDriveMode((v) => !v);
           }}
@@ -196,7 +187,6 @@ export default function WasdController({
         </button>
       </div>
 
-      {/* Status line */}
       <div className="mb-3 flex items-center justify-between rounded-lg border border-gray-200 bg-white/60 px-3 py-2 text-sm text-gray-600 shadow-sm backdrop-blur-md dark:border-gray-200 dark:text-gray-200">
         <div className="flex items-center gap-2">
           {["W", "A", "S", "D"].map((k) => (
@@ -230,7 +220,6 @@ export default function WasdController({
         </div>
       </div>
 
-      {/* WASD Pad */}
       <div
         className={`relative mx-auto flex w-full max-w-xs select-none justify-center rounded-2xl border
           ${driveMode ? "border-blue-200/70" : "border-gray-200"}

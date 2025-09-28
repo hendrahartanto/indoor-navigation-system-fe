@@ -70,7 +70,6 @@ const DashboardPage = () => {
     }
   }, [pathCoords]);
 
-  // Convert coordinate system (0-5) to pixel positions
   const getPixelPosition = (x: number, y: number) => {
     const padding = 40;
     const usableWidth = width - padding * 2;
@@ -89,7 +88,6 @@ const DashboardPage = () => {
     ? getPixelPosition(targetCoords.x, targetCoords.y)
     : null;
 
-  // Convert path to pixel positions
   const pathPixels = pathCoords.map((p) => getPixelPosition(p.x, p.y));
   const pathPoints = pathPixels.map((p) => `${p.x},${p.y}`).join(" ");
 
@@ -176,7 +174,6 @@ const DashboardPage = () => {
         }
       >
         <div className="left flex-1">
-          {/* Header */}
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <MapPin className="h-5 w-5 text-blue-600" />
@@ -206,7 +203,6 @@ const DashboardPage = () => {
           </div>
 
           <div>
-            {/* Coordinate Display */}
             <div className="mb-4 flex items-center justify-between bg-gray-50 rounded p-3">
               <div className="flex space-x-6">
                 <div>
@@ -273,7 +269,6 @@ const DashboardPage = () => {
               {gridLines}
               {axisLabels}
 
-              {/* Path Trail */}
               {pathPixels.length > 1 && (
                 <polyline
                   points={pathPoints}
@@ -289,13 +284,10 @@ const DashboardPage = () => {
               <defs>
                 <linearGradient id="pathGradient" x1="0" y1="0" x2="1" y2="1">
                   <stop offset="0%" stopColor="rgb(191, 219, 254)" />{" "}
-                  {/* blue-200 */}
                   <stop offset="100%" stopColor="rgb(59, 130, 246)" />{" "}
-                  {/* blue-500 */}
                 </linearGradient>
               </defs>
 
-              {/* START marker */}
               {startPixelPos && (
                 <g>
                   <circle
@@ -317,7 +309,6 @@ const DashboardPage = () => {
                 </g>
               )}
 
-              {/* TARGET marker */}
               {targetPixelPos && (
                 <g>
                   <circle
@@ -339,7 +330,6 @@ const DashboardPage = () => {
                 </g>
               )}
 
-              {/* CURRENT device marker */}
               <g>
                 <circle
                   cx={devicePixelPos.x}
@@ -358,7 +348,6 @@ const DashboardPage = () => {
               </g>
             </svg>
 
-            {/* Curr Coordinate Tooltip */}
             <div
               className="absolute bg-gray-900 text-white text-xs rounded px-2 py-1 pointer-events-none transform -translate-x-1/2 -translate-y-full"
               style={{ left: devicePixelPos.x, top: devicePixelPos.y - 10 }}
