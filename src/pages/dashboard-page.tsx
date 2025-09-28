@@ -18,8 +18,8 @@ interface IoTDevice {
 }
 
 const DashboardPage = () => {
-  const width = 500;
-  const height = 400;
+  const width = 600;
+  const height = 500;
 
   const {
     startCoords,
