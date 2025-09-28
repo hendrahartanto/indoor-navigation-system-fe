@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { MapPin, Activity } from "lucide-react";
 import { useWebSocket } from "../hooks/use-web-socket";
+import WasdController from "../components/wasd-controller";
+import { publishDriveCommand } from "../api/publish-drive";
 
 interface DeviceLocation {
   x: number;
@@ -203,57 +205,65 @@ const DashboardPage = () => {
             </div>
           </div>
 
-          {/* Coordinate Display */}
-          <div className="mb-4 flex items-center justify-between bg-gray-50 rounded p-3">
-            <div className="flex space-x-6">
-              <div>
-                <span className="text-sm font-medium text-gray-700">X:</span>
-                <span className="ml-2 text-lg font-mono font-bold text-blue-600">
-                  {device.location.x.toFixed(1)}
-                </span>
+          <div>
+            {/* Coordinate Display */}
+            <div className="mb-4 flex items-center justify-between bg-gray-50 rounded p-3">
+              <div className="flex space-x-6">
+                <div>
+                  <span className="text-sm font-medium text-gray-700">X:</span>
+                  <span className="ml-2 text-lg font-mono font-bold text-blue-600">
+                    {device.location.x.toFixed(1)}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-sm font-medium text-gray-700">Y:</span>
+                  <span className="ml-2 text-lg font-mono font-bold text-blue-600">
+                    {device.location.y.toFixed(1)}
+                  </span>
+                </div>
               </div>
-              <div>
-                <span className="text-sm font-medium text-gray-700">Y:</span>
-                <span className="ml-2 text-lg font-mono font-bold text-blue-600">
-                  {device.location.y.toFixed(1)}
-                </span>
+              {device.location.timestamp && (
+                <div className="text-sm text-gray-500">
+                  Last update: {device.location.timestamp.toLocaleTimeString()}
+                </div>
+              )}
+            </div>
+
+            <div className="mb-4 flex items-center justify-between bg-gray-50 rounded p-3">
+              <div className="flex space-x-6">
+                <div>
+                  <span className="text-sm font-medium text-gray-700">
+                    ultrasonic1:
+                  </span>
+                  <span className="ml-2 text-lg font-mono font-bold text-blue-600">
+                    {currentCoords?.ultrasonic1}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-sm font-medium text-gray-700">
+                    ultrasonic2:
+                  </span>
+                  <span className="ml-2 text-lg font-mono font-bold text-blue-600">
+                    {currentCoords?.ultrasonic2}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-sm font-medium text-gray-700">
+                    ultrasonic3:
+                  </span>
+                  <span className="ml-2 text-lg font-mono font-bold text-blue-600">
+                    {currentCoords?.ultrasonic3}
+                  </span>
+                </div>
               </div>
             </div>
-            {device.location.timestamp && (
-              <div className="text-sm text-gray-500">
-                Last update: {device.location.timestamp.toLocaleTimeString()}
-              </div>
-            )}
           </div>
 
-          <div className="mb-4 flex items-center justify-between bg-gray-50 rounded p-3">
-            <div className="flex space-x-6">
-              <div>
-                <span className="text-sm font-medium text-gray-700">
-                  ultrasonic1:
-                </span>
-                <span className="ml-2 text-lg font-mono font-bold text-blue-600">
-                  {currentCoords?.ultrasonic1}
-                </span>
-              </div>
-              <div>
-                <span className="text-sm font-medium text-gray-700">
-                  ultrasonic2:
-                </span>
-                <span className="ml-2 text-lg font-mono font-bold text-blue-600">
-                  {currentCoords?.ultrasonic2}
-                </span>
-              </div>
-              <div>
-                <span className="text-sm font-medium text-gray-700">
-                  ultrasonic3:
-                </span>
-                <span className="ml-2 text-lg font-mono font-bold text-blue-600">
-                  {currentCoords?.ultrasonic3}
-                </span>
-              </div>
-            </div>
-          </div>
+          <WasdController
+            onCommand={(key, type) => {
+              publishDriveCommand(key, type);
+            }}
+          />
         </div>
 
         <div className="right flex-1 border border-gray-200">
