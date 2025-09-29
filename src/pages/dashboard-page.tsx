@@ -26,7 +26,7 @@ const DashboardPage = () => {
     targetCoords,
     pathCoords,
     currentPos: currentCoords,
-  } = useWebSocket(`${import.meta.env.VITE_WS_BACKEND_URL}/ws`);
+  } = useWebSocket(`wss://${window.location.host}/api/ws`);
 
   const [device, setDevice] = useState<IoTDevice>({
     id: "IOT-001",
