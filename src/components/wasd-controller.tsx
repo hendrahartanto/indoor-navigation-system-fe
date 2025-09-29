@@ -132,7 +132,7 @@ export default function WasdController({
 
   return (
     <div className="mt-4">
-      <div className="mb-3 flex items-center justify-between rounded-xl border border-gray-200 bg-white/60 p-3 shadow-sm backdrop-blur-md dark:border-gray-200 dark:bg-white/10">
+      <div className="mb-3 flex items-center justify-between border border-gray-200 bg-white/60 p-3 backdrop-blur-md dark:border-gray-200 dark:bg-white/10">
         <div className="flex items-center gap-3">
           <span
             className={`inline-flex h-2.5 w-2.5 rounded-full ${
@@ -166,7 +166,7 @@ export default function WasdController({
             }`}
         >
           <span
-            className={`ml-1 inline-flex h-7 w-7 transform items-center justify-center rounded-full bg-white shadow-md transition
+            className={`ml-1 inline-flex h-7 w-7 transform items-center justify-center rounded-full bg-white transition
               ${driveMode ? "translate-x-11" : "translate-x-0"}`}
           />
           <span className="sr-only">Toggle drive mode</span>
@@ -187,7 +187,7 @@ export default function WasdController({
         </button>
       </div>
 
-      <div className="mb-3 flex items-center justify-between rounded-lg border border-gray-200 bg-white/60 px-3 py-2 text-sm text-gray-600 shadow-sm backdrop-blur-md dark:border-gray-200 dark:text-gray-200">
+      <div className="mb-3 flex items-center justify-between border border-gray-200 bg-white/60 px-3 py-2 text-sm text-gray-600 backdrop-blur-md dark:border-gray-200 dark:text-gray-200">
         <div className="flex items-center gap-2">
           {["W", "A", "S", "D"].map((k) => (
             <kbd
@@ -221,9 +221,9 @@ export default function WasdController({
       </div>
 
       <div
-        className={`relative mx-auto flex w-full max-w-xs select-none justify-center rounded-2xl border
+        className={`relative mx-auto flex w-full max-w-xs select-none justify-center rounded-lg border
           ${driveMode ? "border-blue-200/70" : "border-gray-200"}
-          bg-gradient-to-b from-white/80 to-white/50 p-4 shadow backdrop-blur-md dark:from-white/10 dark:to-white/5`}
+          bg-gradient-to-b from-white/80 to-white/50 p-4 backdrop-blur-md dark:from-white/10 dark:to-white/5`}
       >
         {!driveMode && (
           <div className="absolute inset-0 z-10 grid place-items-center rounded-2xl bg-white/60 text-xs text-gray-600">
