@@ -21,6 +21,7 @@ const DashboardPage = () => {
   const width = 600;
   const height = 500;
 
+  // hook custom untuk ambil data posisi device lewat websocket
   const {
     startCoords,
     targetCoords,
@@ -28,6 +29,7 @@ const DashboardPage = () => {
     currentPos: currentCoords,
   } = useWebSocket(`wss://${window.location.host}/api/ws`);
 
+  // state utama untuk nyimpen info device iot
   const [device, setDevice] = useState<IoTDevice>({
     id: "IOT-001",
     name: "Indoor Sensor",
@@ -35,9 +37,11 @@ const DashboardPage = () => {
     isOnline: true,
   });
 
+  // ref ini dipakai buat simpen posisi x dan y terkini (supaya gak trigger render tiap frame)
   const currentPos = useRef({ x: device.location.x, y: device.location.y });
   const animationRef = useRef<number | null>(null);
 
+  // function buat animasi perpindahan titik device ke target koordinat
   const animateTo = (targetX: number, targetY: number, duration = 500) => {
     if (animationRef.current) cancelAnimationFrame(animationRef.current);
 
@@ -46,23 +50,28 @@ const DashboardPage = () => {
     const startTime = performance.now();
 
     const step = (time: number) => {
+      // hitung progress animasi
       const t = Math.min((time - startTime) / duration, 1);
+      // easing biar gerakannya smooth
       const eased = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
       const newX = startX + (targetX - startX) * eased;
       const newY = startY + (targetY - startY) * eased;
       currentPos.current = { x: newX, y: newY };
 
+      // update posisi device ke state biar tampilannya ke-refresh
       setDevice((prev) => ({
         ...prev,
         location: { x: newX, y: newY, timestamp: new Date() },
       }));
 
+      // lanjut animasi kalau belum selesai
       if (t < 1) animationRef.current = requestAnimationFrame(step);
     };
 
     animationRef.current = requestAnimationFrame(step);
   };
 
+  // setiap pathCoords berubah, animasikan device ke titik terakhir di path
   useEffect(() => {
     if (pathCoords.length > 0) {
       const lastIndex = pathCoords.length - 1;
@@ -70,6 +79,7 @@ const DashboardPage = () => {
     }
   }, [pathCoords]);
 
+  // konversi koordinat dari grid ke pixel svg biar bisa ditampilkan di canvas
   const getPixelPosition = (x: number, y: number) => {
     const padding = 40;
     const usableWidth = width - padding * 2;
@@ -88,9 +98,11 @@ const DashboardPage = () => {
     ? getPixelPosition(targetCoords.x, targetCoords.y)
     : null;
 
+  // konversi semua titik path ke posisi pixel
   const pathPixels = pathCoords.map((p) => getPixelPosition(p.x, p.y));
   const pathPoints = pathPixels.map((p) => `${p.x},${p.y}`).join(" ");
 
+  // bikin grid untuk tampilan area peta
   const gridLines = [];
   const padding = 40;
   const usableWidth = width - padding * 2;
@@ -174,6 +186,7 @@ const DashboardPage = () => {
         }
       >
         <div className="left flex-1">
+          {/* bagian kiri buat info device dan kontrol manual */}
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <MapPin className="h-5 w-5 text-blue-600" />
@@ -202,6 +215,7 @@ const DashboardPage = () => {
             </div>
           </div>
 
+          {/* info koordinat posisi device */}
           <div>
             <div className="mb-4 flex items-center justify-between bg-gray-50 rounded p-3">
               <div className="flex space-x-6">
@@ -225,6 +239,7 @@ const DashboardPage = () => {
               )}
             </div>
 
+            {/* info sensor ultrasonic */}
             <div className="mb-4 flex items-center justify-between bg-gray-50 rounded p-3">
               <div className="flex space-x-6">
                 <div>
@@ -255,13 +270,16 @@ const DashboardPage = () => {
             </div>
           </div>
 
+          {/* kontrol arah pakai wasd */}
           <WasdController
             onCommand={(key, type) => {
+              // kirim command gerak ke api mqtt
               publishDriveCommand(key, type);
             }}
           />
         </div>
 
+        {/* bagian kanan buat tampilan posisi device di grid */}
         <div className="right flex-1 border border-gray-200">
           <div className="relative overflow-hidden w-fit mx-auto">
             <svg width={width} height={height} className="block">
@@ -269,6 +287,7 @@ const DashboardPage = () => {
               {gridLines}
               {axisLabels}
 
+              {/* garis path pergerakan device */}
               {pathPixels.length > 1 && (
                 <polyline
                   points={pathPoints}
@@ -288,6 +307,7 @@ const DashboardPage = () => {
                 </linearGradient>
               </defs>
 
+              {/* titik start */}
               {startPixelPos && (
                 <g>
                   <circle
@@ -309,6 +329,7 @@ const DashboardPage = () => {
                 </g>
               )}
 
+              {/* titik target */}
               {targetPixelPos && (
                 <g>
                   <circle
@@ -330,6 +351,7 @@ const DashboardPage = () => {
                 </g>
               )}
 
+              {/* titik posisi device saat ini */}
               <g>
                 <circle
                   cx={devicePixelPos.x}
@@ -348,6 +370,7 @@ const DashboardPage = () => {
               </g>
             </svg>
 
+            {/* tooltip posisi device */}
             <div
               className="absolute bg-gray-900 text-white text-xs rounded px-2 py-1 pointer-events-none transform -translate-x-1/2 -translate-y-full"
               style={{ left: devicePixelPos.x, top: devicePixelPos.y - 10 }}

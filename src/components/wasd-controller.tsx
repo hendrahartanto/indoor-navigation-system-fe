@@ -8,22 +8,31 @@ export default function WasdController({
 }: {
   onCommand?: (key: KeyWASD, type: Phase) => void;
 }) {
+  // state buat nyimpen apakah mode drive aktif atau engga
   const [driveMode, setDriveMode] = useState(false);
+
+  // state buat nyimpen tombol aktif yang lagi ditekan
   const [activeKey, setActiveKey] = useState<KeyWASD | null>(null);
+
+  // ref buat sync nilai activeKey biar bisa diakses di event listener
   const activeKeyRef = useRef<KeyWASD | null>(null);
   useEffect(() => {
     activeKeyRef.current = activeKey;
   }, [activeKey]);
 
+  // ref buat nyimpen event terakhir (buat ditampilin atau logging)
   const lastRef = useRef<{ key: KeyWASD; type: Phase } | null>(null);
 
+  // helper buat cek apakah key yang ditekan adalah w, a, s, atau d
   const isWASD = (k: string): k is KeyWASD =>
     k === "w" || k === "a" || k === "s" || k === "d";
 
+  // ref buat nyimpen event terakhir dengan timestamp biar ga double trigger terlalu cepat
   const lastEventRef = useRef<{ key: KeyWASD; type: Phase; ts: number } | null>(
     null
   );
 
+  // function utama buat trigger event saat tombol ditekan atau dilepas
   const trigger = useCallback(
     (key: KeyWASD, type: Phase) => {
       const now = performance.now();
@@ -45,6 +54,7 @@ export default function WasdController({
     [onCommand]
   );
 
+  // function buat handle key down
   const pressKey = useCallback(
     (key: KeyWASD) => {
       if (activeKey) return;
@@ -54,6 +64,7 @@ export default function WasdController({
     [activeKey, trigger]
   );
 
+  // function buat handle key up
   const releaseKey = useCallback(
     (key: KeyWASD) => {
       if (activeKey !== key) return;
@@ -63,6 +74,7 @@ export default function WasdController({
     [activeKey, trigger]
   );
 
+  // function buat ngelepas semua tombol aktif (misalnya tab pindah atau window blur)
   const releaseAll = useCallback(() => {
     if (activeKey) {
       trigger(activeKey, "up");
@@ -105,6 +117,7 @@ export default function WasdController({
     };
   }, [driveMode, pressKey, releaseKey, releaseAll]);
 
+  // handle input dari tombol virtual (pointer / touch)
   const pressStart = useCallback(
     (k: KeyWASD) => (e?: React.PointerEvent) => {
       if (!driveMode) return;
@@ -127,6 +140,7 @@ export default function WasdController({
     [driveMode, releaseKey]
   );
 
+  // function cek apakah tombol lagi aktif atau engga
   const last = lastRef.current;
   const isActive = useCallback((k: KeyWASD) => activeKey === k, [activeKey]);
 
