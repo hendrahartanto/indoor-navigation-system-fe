@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-interface CoordinateMessage {
+export interface CoordinateMessage {
   type: "rssi_start" | "rssi_target" | "rssi_path";
   x: number;
   y: number;
