@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { IoTDevice } from "../pages/dashboard-page";
 
 interface DeviceGridMapProps {
@@ -26,7 +26,13 @@ export const DeviceGridMap = ({
   device,
   setDevice,
 }: DeviceGridMapProps) => {
-  // setiap pathCoords berubah, animasikan device ke titik terakhir di path
+  const [hoverCoord, setHoverCoord] = useState<{ x: number; y: number } | null>(
+    null
+  );
+  const [hoverPixel, setHoverPixel] = useState<{ x: number; y: number } | null>(
+    null
+  );
+
   useEffect(() => {
     if (pathCoords.length > 0) {
       const lastIndex = pathCoords.length - 1;
@@ -34,11 +40,9 @@ export const DeviceGridMap = ({
     }
   }, [pathCoords]);
 
-  // ref ini dipakai buat simpen posisi x dan y terkini (supaya gak trigger render tiap frame)
   const currentPos = useRef({ x: device.location.x, y: device.location.y });
   const animationRef = useRef<number | null>(null);
 
-  // function buat animasi perpindahan titik device ke target koordinat
   const animateTo = (targetX: number, targetY: number, duration = 500) => {
     if (animationRef.current) cancelAnimationFrame(animationRef.current);
 
@@ -47,28 +51,23 @@ export const DeviceGridMap = ({
     const startTime = performance.now();
 
     const step = (time: number) => {
-      // hitung progress animasi
       const t = Math.min((time - startTime) / duration, 1);
-      // easing biar gerakannya smooth
       const eased = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
       const newX = startX + (targetX - startX) * eased;
       const newY = startY + (targetY - startY) * eased;
       currentPos.current = { x: newX, y: newY };
 
-      // update posisi device ke state biar tampilannya ke-refresh
       setDevice((prev) => ({
         ...prev,
         location: { x: newX, y: newY, timestamp: new Date() },
       }));
 
-      // lanjut animasi kalau belum selesai
       if (t < 1) animationRef.current = requestAnimationFrame(step);
     };
 
     animationRef.current = requestAnimationFrame(step);
   };
 
-  // konversi koordinat dari grid ke pixel svg biar bisa ditampilkan di canvas
   const getPixelPosition = (x: number, y: number) => {
     const padding = 40;
     const usableWidth = width - padding * 2;
@@ -79,23 +78,52 @@ export const DeviceGridMap = ({
     };
   };
 
+  const getGridCoordFromPixel = (px: number, py: number) => {
+    const padding = 40;
+    const usableWidth = width - padding * 2;
+    const usableHeight = height - padding * 2;
+
+    const x = Math.min(5, Math.max(0, ((px - padding) / usableWidth) * 5));
+    const y = Math.min(5, Math.max(0, 5 - ((py - padding) / usableHeight) * 5));
+
+    return { x: parseFloat(x.toFixed(1)), y: parseFloat(y.toFixed(1)) };
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const px = e.clientX - rect.left;
+    const py = e.clientY - rect.top;
+    const coord = getGridCoordFromPixel(px, py);
+    setHoverCoord(coord);
+    setHoverPixel({ x: px, y: py });
+  };
+
+  const handleMouseLeave = () => {
+    setHoverCoord(null);
+    setHoverPixel(null);
+  };
+
+  const handleClick = () => {
+    if (hoverCoord) {
+      alert(`clicked coord: x: ${hoverCoord.x} y: ${hoverCoord.y}`);
+    }
+  };
+
   const devicePixelPos = getPixelPosition(device.location.x, device.location.y);
   const startPixelPos = startCoords
     ? getPixelPosition(startCoords.x, startCoords.y)
     : null;
-
   const targetPixelPos = targetCoords
     ? getPixelPosition(targetCoords.x, targetCoords.y)
     : null;
-  // konversi semua titik path ke posisi pixel
+
   const pathPixels = pathCoords.map((p) => getPixelPosition(p.x, p.y));
   const pathPoints = pathPixels.map((p) => `${p.x},${p.y}`).join(" ");
 
-  // bikin grid untuk tampilan area peta
-  const gridLines = [];
   const padding = 40;
   const usableWidth = width - padding * 2;
   const usableHeight = height - padding * 2;
+  const gridLines = [];
 
   for (let i = 0; i <= 5; i++) {
     const x = padding + (i / 5) * usableWidth;
@@ -163,7 +191,14 @@ export const DeviceGridMap = ({
   return (
     <div className="flex-1 border border-gray-200">
       <div className="relative overflow-hidden w-fit mx-auto">
-        <svg width={width} height={height} className="block">
+        <svg
+          width={width}
+          height={height}
+          className="block cursor-crosshair"
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleMouseLeave}
+          onClick={handleClick}
+        >
           <rect width={width} height={height} fill="white" />
           {gridLines}
           {axisLabels}
@@ -182,12 +217,11 @@ export const DeviceGridMap = ({
 
           <defs>
             <linearGradient id="pathGradient" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="rgb(191, 219, 254)" />{" "}
-              <stop offset="100%" stopColor="rgb(59, 130, 246)" />{" "}
+              <stop offset="0%" stopColor="rgb(191, 219, 254)" />
+              <stop offset="100%" stopColor="rgb(59, 130, 246)" />
             </linearGradient>
           </defs>
 
-          {/* titik start */}
           {startPixelPos && (
             <g>
               <circle
@@ -209,7 +243,6 @@ export const DeviceGridMap = ({
             </g>
           )}
 
-          {/* titik target */}
           {targetPixelPos && (
             <g>
               <circle
@@ -231,7 +264,6 @@ export const DeviceGridMap = ({
             </g>
           )}
 
-          {/* titik posisi device saat ini */}
           <g>
             <circle
               cx={devicePixelPos.x}
@@ -257,6 +289,16 @@ export const DeviceGridMap = ({
         >
           ({device.location.x.toFixed(1)}, {device.location.y.toFixed(1)})
         </div>
+
+        {/* tooltip hover koordinat */}
+        {hoverCoord && hoverPixel && (
+          <div
+            className="absolute bg-black/80 text-white text-xs rounded px-2 py-1 pointer-events-none transform -translate-x-1/2 -translate-y-full"
+            style={{ left: hoverPixel.x, top: hoverPixel.y - 10 }}
+          >
+            ({hoverCoord.x}, {hoverCoord.y})
+          </div>
+        )}
       </div>
     </div>
   );
