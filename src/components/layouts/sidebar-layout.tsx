@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Monitor } from "lucide-react";
+import { FileText, LayoutDashboard, Monitor } from "lucide-react";
 
 interface SidebarLayoutProps {
   children: React.ReactNode;
@@ -18,6 +18,11 @@ export const SidebarLayout = ({ children }: SidebarLayoutProps) => {
       path: "/monitoring",
       label: "Monitoring",
       icon: Monitor,
+    },
+    {
+      path: "/logs",
+      label: "Logs",
+      icon: FileText,
     },
   ];
 
