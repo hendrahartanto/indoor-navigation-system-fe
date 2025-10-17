@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useWebSocket } from "../hooks/use-web-socket";
 import { DeviceGridMap } from "../components/device-grid-map";
 import { DeviceInformation } from "../components/device-information";
-import {startNavigation} from "../api/publish-navigation.ts";
+import { startNavigation } from "../api/publish-navigation.ts";
 import { SidebarContentLayout } from "../components/layouts/sidebar-content-layout";
 
 export interface DeviceLocation {
@@ -43,7 +43,7 @@ const DashboardPage = () => {
       title="Dashboard"
       subtitle="Real-time IoT device location tracking and control"
     >
-      <div className="flex gap-8">
+      <div className="bg-white border border-gray-200 flex gap-8 p-8">
         {/* left Section - device info */}
         <div className="flex-1 space-y-6">
           <DeviceInformation device={device} currentCoords={currentCoords} />
@@ -56,11 +56,14 @@ const DashboardPage = () => {
           {/*  }}*/}
           {/*/>*/}
 
-        <div className="flex items-center justify-center space-x-2 mt-8">
-            <button className="bg-green-500 hover:bg-green-800 hover:cursor-pointer text-white justify-center font-bold py-2 px-4 rounded" onClick={startNavigation}>
-                Start Navigation
+          <div className="flex items-center justify-center space-x-2 mt-8">
+            <button
+              className="bg-green-500 hover:bg-green-800 hover:cursor-pointer text-white justify-center font-bold py-2 px-4 rounded"
+              onClick={startNavigation}
+            >
+              Start Navigation
             </button>
-        </div>
+          </div>
         </div>
 
         {/* right Section - grid map */}

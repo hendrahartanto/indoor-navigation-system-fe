@@ -19,7 +19,7 @@ export const SidebarContentLayout = ({
         </div>
 
         {/* content */}
-        <div className="bg-white border border-gray-200 p-8">{children}</div>
+        {children}
       </div>
     </div>
   );
