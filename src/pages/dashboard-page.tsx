@@ -3,6 +3,7 @@ import { useWebSocket } from "../hooks/use-web-socket";
 import { DeviceGridMap } from "../components/device-grid-map";
 import { DeviceInformation } from "../components/device-information";
 import {startNavigation} from "../api/publish-navigation.ts";
+import { SidebarContentLayout } from "../components/layouts/sidebar-content-layout";
 
 export interface DeviceLocation {
   x: number;
@@ -38,21 +39,13 @@ const DashboardPage = () => {
   });
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          IoT Device Location Tracker
-        </h1>
-        <p className="text-gray-600">Real-time indoor positioning system</p>
-      </div>
-
-      <div
-        className={
-          "flex gap-10 bg-white rounded-lg border border-gray-300 shadow-sm p-7"
-        }
-      >
-        <div className="left flex-1">
-          {/* bagian kiri buat info device dan kontrol manual */}
+    <SidebarContentLayout
+      title="Dashboard"
+      subtitle="Real-time IoT device location tracking and control"
+    >
+      <div className="flex gap-8">
+        {/* left Section - device info */}
+        <div className="flex-1 space-y-6">
           <DeviceInformation device={device} currentCoords={currentCoords} />
 
           {/* kontrol arah pakai wasd */}
@@ -70,23 +63,20 @@ const DashboardPage = () => {
         </div>
         </div>
 
-        {/* tampilakn grid map */}
-        <DeviceGridMap
-          device={device}
-          height={height}
-          width={width}
-          pathCoords={pathCoords}
-          setDevice={setDevice}
-          startCoords={startCoords}
-          targetCoords={targetCoords}
-        />
-
-
+        {/* right Section - grid map */}
+        <div className="flex-shrink-0">
+          <DeviceGridMap
+            device={device}
+            height={height}
+            width={width}
+            pathCoords={pathCoords}
+            setDevice={setDevice}
+            startCoords={startCoords}
+            targetCoords={targetCoords}
+          />
+        </div>
       </div>
-
-
-
-    </div>
+    </SidebarContentLayout>
   );
 };
 
