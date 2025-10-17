@@ -26,6 +26,8 @@ export const DeviceGridMap = ({
   device,
   setDevice,
 }: DeviceGridMapProps) => {
+  const GRID_SIZE = 3;
+
   const [hoverCoord, setHoverCoord] = useState<{ x: number; y: number } | null>(
     null
   );
@@ -73,8 +75,8 @@ export const DeviceGridMap = ({
     const usableWidth = width - padding * 2;
     const usableHeight = height - padding * 2;
     return {
-      x: padding + (x / 5) * usableWidth,
-      y: padding + ((5 - y) / 5) * usableHeight,
+      x: padding + (x / GRID_SIZE) * usableWidth,
+      y: padding + ((GRID_SIZE - y) / GRID_SIZE) * usableHeight,
     };
   };
 
@@ -83,8 +85,14 @@ export const DeviceGridMap = ({
     const usableWidth = width - padding * 2;
     const usableHeight = height - padding * 2;
 
-    const x = Math.min(5, Math.max(0, ((px - padding) / usableWidth) * 5));
-    const y = Math.min(5, Math.max(0, 5 - ((py - padding) / usableHeight) * 5));
+    const x = Math.min(
+      GRID_SIZE,
+      Math.max(0, ((px - padding) / usableWidth) * GRID_SIZE)
+    );
+    const y = Math.min(
+      GRID_SIZE,
+      Math.max(0, GRID_SIZE - ((py - padding) / usableHeight) * GRID_SIZE)
+    );
 
     return { x: parseFloat(x.toFixed(1)), y: parseFloat(y.toFixed(1)) };
   };
@@ -125,8 +133,8 @@ export const DeviceGridMap = ({
   const usableHeight = height - padding * 2;
   const gridLines = [];
 
-  for (let i = 0; i <= 5; i++) {
-    const x = padding + (i / 5) * usableWidth;
+  for (let i = 0; i <= GRID_SIZE; i++) {
+    const x = padding + (i / GRID_SIZE) * usableWidth;
     gridLines.push(
       <line
         key={`v-${i}`}
@@ -136,13 +144,13 @@ export const DeviceGridMap = ({
         y2={height - padding}
         stroke="#e5e7eb"
         strokeWidth="1"
-        strokeDasharray={i % 5 === 0 ? "none" : "2,2"}
+        strokeDasharray={i % GRID_SIZE === 0 ? "none" : "2,2"}
       />
     );
   }
 
-  for (let j = 0; j <= 5; j++) {
-    const y = padding + (j / 5) * usableHeight;
+  for (let j = 0; j <= GRID_SIZE; j++) {
+    const y = padding + (j / GRID_SIZE) * usableHeight;
     gridLines.push(
       <line
         key={`h-${j}`}
@@ -152,14 +160,14 @@ export const DeviceGridMap = ({
         y2={y}
         stroke="#e5e7eb"
         strokeWidth="1"
-        strokeDasharray={j % 5 === 0 ? "none" : "2,2"}
+        strokeDasharray={j % GRID_SIZE === 0 ? "none" : "2,2"}
       />
     );
   }
 
   const axisLabels = [];
-  for (let i = 0; i <= 5; i++) {
-    const x = padding + (i / 5) * usableWidth;
+  for (let i = 0; i <= GRID_SIZE; i++) {
+    const x = padding + (i / GRID_SIZE) * usableWidth;
     axisLabels.push(
       <text
         key={`x-label-${i}`}
@@ -173,8 +181,8 @@ export const DeviceGridMap = ({
     );
   }
 
-  for (let i = 0; i <= 5; i++) {
-    const y = padding + (i / 5) * usableHeight;
+  for (let i = 0; i <= GRID_SIZE; i++) {
+    const y = padding + (i / GRID_SIZE) * usableHeight;
     axisLabels.push(
       <text
         key={`y-label-${i}`}
@@ -183,7 +191,7 @@ export const DeviceGridMap = ({
         textAnchor="middle"
         className="text-xs fill-gray-600"
       >
-        {5 - i}
+        {GRID_SIZE - i}
       </text>
     );
   }
