@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { useWebSocket } from "../hooks/use-web-socket";
-import WasdController from "../components/wasd-controller";
-import { publishDriveCommand } from "../api/publish-drive";
 import { DeviceGridMap } from "../components/device-grid-map";
 import { DeviceInformation } from "../components/device-information";
+import {startNavigation} from "../api/publish-navigation.ts";
 
 export interface DeviceLocation {
   x: number;
@@ -57,12 +56,18 @@ const DashboardPage = () => {
           <DeviceInformation device={device} currentCoords={currentCoords} />
 
           {/* kontrol arah pakai wasd */}
-          <WasdController
-            onCommand={(key, type) => {
-              // kirim command gerak ke api mqtt
-              publishDriveCommand(key, type);
-            }}
-          />
+          {/*<WasdController*/}
+          {/*  onCommand={(key, type) => {*/}
+          {/*    // kirim command gerak ke api mqtt*/}
+          {/*    publishDriveCommand(key, type);*/}
+          {/*  }}*/}
+          {/*/>*/}
+
+        <div className="flex items-center justify-center space-x-2 mt-8">
+            <button className="bg-green-500 hover:bg-green-800 hover:cursor-pointer text-white justify-center font-bold py-2 px-4 rounded" onClick={startNavigation}>
+                Start Navigation
+            </button>
+        </div>
         </div>
 
         {/* tampilakn grid map */}
@@ -75,7 +80,12 @@ const DashboardPage = () => {
           startCoords={startCoords}
           targetCoords={targetCoords}
         />
+
+
       </div>
+
+
+
     </div>
   );
 };
