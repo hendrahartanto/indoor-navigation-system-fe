@@ -69,28 +69,23 @@ export const DeviceInformation = ({
         </div>
 
         {/* info sensor ultrasonic */}
+        <h2 className="font-semibold text-gray-900 mb-2">Ultrasonic (cm)</h2>
         <div className="mb-4 flex items-center justify-between bg-gray-50 rounded p-3">
           <div className="flex space-x-6">
             <div>
-              <span className="text-sm font-medium text-gray-700">
-                ultrasonic1:
-              </span>
+              <span className="text-sm font-medium text-gray-700">Right:</span>
               <span className="ml-2 text-lg font-mono font-bold text-blue-600">
                 {currentCoords?.ultrasonic1}
               </span>
             </div>
             <div>
-              <span className="text-sm font-medium text-gray-700">
-                ultrasonic2:
-              </span>
+              <span className="text-sm font-medium text-gray-700">Front:</span>
               <span className="ml-2 text-lg font-mono font-bold text-blue-600">
                 {currentCoords?.ultrasonic2}
               </span>
             </div>
             <div>
-              <span className="text-sm font-medium text-gray-700">
-                ultrasonic3:
-              </span>
+              <span className="text-sm font-medium text-gray-700">Left:</span>
               <span className="ml-2 text-lg font-mono font-bold text-blue-600">
                 {currentCoords?.ultrasonic3}
               </span>
