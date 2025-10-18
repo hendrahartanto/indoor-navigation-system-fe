@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { IoTDevice } from "../pages/dashboard-page";
+import { setTargetPoint } from "../services/coordinate-service";
 
 interface DeviceGridMapProps {
   width: number;
@@ -111,8 +112,12 @@ export const DeviceGridMap = ({
     setHoverPixel(null);
   };
 
-  const handleClick = () => {
+  const handleClick = async () => {
     if (hoverCoord) {
+      try {
+        const res = await setTargetPoint(hoverCoord);
+        console.log(res);
+      } catch (error) {}
       alert(`clicked coord: x: ${hoverCoord.x} y: ${hoverCoord.y}`);
     }
   };
