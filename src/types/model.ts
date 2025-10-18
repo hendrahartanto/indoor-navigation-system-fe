@@ -16,7 +16,7 @@ export type RawRSSI = {
 
 export type Log = {
   timestamp: Date;
-  logType: LogType;
+  status: LogType;
   text: string;
 };
 

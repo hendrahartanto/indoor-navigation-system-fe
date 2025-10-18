@@ -1,30 +1,26 @@
 import { useEffect, useState } from "react";
 import type { Log, LogType } from "../types/model";
 import { SidebarContentLayout } from "../components/layouts/sidebar-content-layout";
+import {getLogData} from "../api/log-service.ts";
+import Pagination from "../components/logs-pagination.tsx";
 
 const Logs = () => {
+
   const [logs, setLogs] = useState<Log[]>([]);
+  const [page, setPage] = useState(1);
+  const [totalPage, setTotalPage] = useState(1);
+
+  console.log(totalPage)
+
+  const fetchLogs = async () => {
+    const res = await getLogData("2025-10-17", page)
+    setLogs(res.data.data)
+    setTotalPage(res.data.total_pages)
+  }
 
   useEffect(() => {
-    const fakeLogs: Log[] = [
-      {
-        timestamp: new Date("2025-10-17T08:30:00"),
-        logType: "MCU",
-        text: "Device A successfully connected.",
-      },
-      {
-        timestamp: new Date("2025-10-17T08:35:00"),
-        logType: "ACTIVITY",
-        text: "User admin accessed Monitoring page.",
-      },
-      {
-        timestamp: new Date("2025-10-17T09:00:00"),
-        logType: "MCU",
-        text: "Device B signal lost.",
-      },
-    ];
-    setLogs(fakeLogs);
-  }, []);
+    fetchLogs().then()
+  }, [page]);
 
   const getLogTypeColor = (type: LogType) => {
     switch (type) {
@@ -55,15 +51,16 @@ const Logs = () => {
                 className="hover:bg-gray-50 transition-colors text-sm"
               >
                 <td className="px-4 py-3 border-b border-gray-200 font-mono text-gray-600">
-                  {log.timestamp.toLocaleString()}
+
+                  {log.timestamp.toLocaleString().split('T')[0]} {log.timestamp.toLocaleString().split('T')[1].substring(0, 5)}
                 </td>
                 <td className="px-4 py-3 border-b border-gray-200">
                   <span
                     className={`px-2 py-1 rounded-full text-xs font-medium ${getLogTypeColor(
-                      log.logType
+                      log.status
                     )}`}
                   >
-                    {log.logType}
+                    {log.status}
                   </span>
                 </td>
                 <td className="px-4 py-3 border-b border-gray-200 text-gray-800">
@@ -79,6 +76,10 @@ const Logs = () => {
             No logs available.
           </div>
         )}
+      </div>
+
+      <div className='flex justify-center fixed bottom-8 right-0 left-0 m-auto'>
+        <Pagination totalPages={totalPage} currentPage={page} onPageChange={setPage}/>
       </div>
     </SidebarContentLayout>
   );
