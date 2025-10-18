@@ -13,11 +13,7 @@ import {
 } from "recharts";
 import type { RawRSSI } from "../types/model";
 import { SidebarContentLayout } from "../components/layouts/sidebar-content-layout";
-
-interface ScatterPoint {
-  time: string;
-  value: number;
-}
+import {getMonitoringData} from "../api/monitoring-service.ts";
 
 interface ChartData {
   time: string;
@@ -32,71 +28,6 @@ interface ChartData {
   mean3: number;
 }
 
-const generateDailyMockData = (selectedDate: Date): RawRSSI[] => {
-  const data: RawRSSI[] = [];
-  const startTime = new Date(selectedDate);
-  startTime.setHours(8, 0, 0, 0);
-
-  const endTime = new Date(selectedDate);
-  endTime.setHours(17, 0, 0, 0);
-
-  const duration = endTime.getTime() - startTime.getTime();
-  const interval = 5 * 60 * 1000;
-  const dataPoints = Math.floor(duration / interval);
-
-  let rssi1Base = -65;
-  let rssi2Base = -60;
-  let rssi3Base = -70;
-  let variance1Base = 25;
-  let variance2Base = 20;
-  let variance3Base = 30;
-
-  for (let i = 0; i <= dataPoints; i++) {
-    const timestamp = new Date(startTime.getTime() + i * interval);
-
-    rssi1Base += (Math.random() - 0.5) * 1;
-    rssi2Base += (Math.random() - 0.5) * 1;
-    rssi3Base += (Math.random() - 0.5) * 1;
-    variance1Base += (Math.random() - 0.5) * 2;
-    variance2Base += (Math.random() - 0.5) * 2;
-    variance3Base += (Math.random() - 0.5) * 2;
-
-    rssi1Base = Math.max(-75, Math.min(-55, rssi1Base));
-    rssi2Base = Math.max(-70, Math.min(-50, rssi2Base));
-    rssi3Base = Math.max(-80, Math.min(-60, rssi3Base));
-    variance1Base = Math.max(15, Math.min(35, variance1Base));
-    variance2Base = Math.max(10, Math.min(30, variance2Base));
-    variance3Base = Math.max(20, Math.min(40, variance3Base));
-
-    data.push({
-      timestamp,
-      rssi1: Array.from(
-        { length: 7 },
-        () => rssi1Base + (Math.random() - 0.5) * 3
-      ),
-      rssi2: Array.from(
-        { length: 7 },
-        () => rssi2Base + (Math.random() - 0.5) * 3
-      ),
-      rssi3: Array.from(
-        { length: 7 },
-        () => rssi3Base + (Math.random() - 0.5) * 3
-      ),
-      variance1: variance1Base,
-      variance2: variance2Base,
-      variance3: variance3Base,
-      median1: rssi1Base + (Math.random() - 0.5) * 2,
-      median2: rssi2Base + (Math.random() - 0.5) * 2,
-      median3: rssi3Base + (Math.random() - 0.5) * 2,
-      mean1: rssi1Base + (Math.random() - 0.5) * 2,
-      mean2: rssi2Base + (Math.random() - 0.5) * 2,
-      mean3: rssi3Base + (Math.random() - 0.5) * 2,
-    });
-  }
-
-  return data;
-};
-
 const Monitoring = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [data, setData] = useState<RawRSSI[]>([]);
@@ -104,9 +35,23 @@ const Monitoring = () => {
     "rssi1"
   );
 
+
+  const setRSSIData = async() => {
+    const formattedDate = selectedDate.toISOString().split('T')[0];
+    const res = await getMonitoringData(formattedDate)
+    console.log(res.data.data)
+    setData(res.data.data)
+  }
+
   useEffect(() => {
-    const newData = generateDailyMockData(selectedDate);
-    setData(newData);
+    if(data){
+      console.log(data, "data")
+    }
+  }, [data]);
+
+  useEffect(() => {
+    // const newData = generateDailyMockData(selectedDate);
+    setRSSIData().then()
   }, [selectedDate]);
 
   const formatDateForInput = (date: Date): string => {
@@ -117,19 +62,25 @@ const Monitoring = () => {
   };
 
   const formatTime = (timestamp: Date): string => {
-    return timestamp.toLocaleTimeString("id-ID", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    return timestamp.toString().split("T")[1].toString().substring(0,5);
+
   };
 
   // === Buat data scatter untuk RSSI ===
-  const scatterData: ScatterPoint[] = data.flatMap((item) =>
-    item[selectedRssi].map((val) => ({
-      time: formatTime(item.timestamp),
-      value: val,
-    }))
+  const scatterData = data.flatMap((item) =>
+      {
+        console.log(item, "item")
+        return item[selectedRssi].map((rssi) => ({
+          time: new Date(item.timestamp).getTime(),
+          value: rssi,
+        }))
+      }
   );
+
+
+  useEffect(() => {
+    console.log(scatterData, "scatterData")
+  }, [scatterData]);
 
   // === Data untuk chart lainnya ===
   const chartData: ChartData[] = data.map((item) => ({
@@ -226,9 +177,26 @@ const Monitoring = () => {
               <ResponsiveContainer width="100%" height={300}>
                 <ScatterChart>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="time" type="category" />
+                  <XAxis dataKey="time" type="number" domain={["auto", "auto"]}
+                         tickFormatter={(unixTime) =>
+                             new Date(unixTime).toISOString().split("T")[1].substring(0, 5)
+                         }
+                  />
                   <YAxis dataKey="value" />
-                  <Tooltip />
+                  <Tooltip
+                      cursor={{ strokeDasharray: '3 3' }}
+                      wrapperStyle={{ zIndex: 1000, outline: 'none' }} // Style the outer portal-ed div
+                      contentStyle={{
+                        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                        border: '1px solid #ccc',
+                        padding: '10px',
+                        borderRadius: '3px'
+                      }} // Style the tooltip box
+                      labelStyle={{ color: '#000' }} // Style the time label
+                      labelFormatter={(unixTime) =>
+                          `Time: ${new Date(unixTime).toISOString().split("T")[1].substring(0, 5)}`
+                      }
+                  />
                   <Legend />
                   <Scatter
                     name={selectedRssi.toUpperCase()}

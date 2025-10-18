@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { IoTDevice } from "../pages/dashboard-page";
-import { setTargetPoint } from "../services/coordinate-service";
+import { setTargetPoint } from "../api/coordinate-service.ts";
 
 interface DeviceGridMapProps {
   width: number;

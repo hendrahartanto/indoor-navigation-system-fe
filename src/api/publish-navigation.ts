@@ -4,7 +4,7 @@ import axios from "axios";
 export const startNavigation = async () => {
     console.log("Start Navigation:");
     const res = await axios.get(
-        `${import.meta.env.VITE_BACKEND_URL}/navigation/start`,
+        `${import.meta.env.VITE_BACKEND_URL}/rssi/start`,
     );
     return res.data;
 };
