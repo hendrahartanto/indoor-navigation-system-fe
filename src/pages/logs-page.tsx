@@ -1,26 +1,32 @@
 import { useEffect, useState } from "react";
 import type { Log, LogType } from "../types/model";
 import { SidebarContentLayout } from "../components/layouts/sidebar-content-layout";
-import {getLogData} from "../api/log-service.ts";
+import { getLogData } from "../api/log-service.ts";
 import Pagination from "../components/logs-pagination.tsx";
 
 const Logs = () => {
-
   const [logs, setLogs] = useState<Log[]>([]);
   const [page, setPage] = useState(1);
   const [totalPage, setTotalPage] = useState(1);
 
-  console.log(totalPage)
+  const [selectedDate, setSelectedDate] = useState<string>(() => {
+    const today = new Date();
+    return today.toISOString().split("T")[0];
+  });
 
   const fetchLogs = async () => {
-    const res = await getLogData("2025-10-17", page)
-    setLogs(res.data.data)
-    setTotalPage(res.data.total_pages)
-  }
+    try {
+      const res = await getLogData(selectedDate, page);
+      setLogs(res.data.data);
+      setTotalPage(res.data.total_pages);
+    } catch (error) {
+      console.error("Error fetching logs:", error);
+    }
+  };
 
   useEffect(() => {
-    fetchLogs().then()
-  }, [page]);
+    fetchLogs().then();
+  }, [selectedDate, page]);
 
   const getLogTypeColor = (type: LogType) => {
     switch (type) {
@@ -35,6 +41,19 @@ const Logs = () => {
 
   return (
     <SidebarContentLayout title="Logs" subtitle="View all logs">
+      <div className="mb-5">
+        <label className="text-sm text-gray-700 mr-2">Select date:</label>
+        <input
+          type="date"
+          value={selectedDate}
+          onChange={(e) => {
+            setPage(1);
+            setSelectedDate(e.target.value);
+          }}
+          className="border border-gray-300 rounded-md px-3 py-1 text-sm focus:ring-2 focus:ring-red-500 focus:outline-none"
+        />
+      </div>
+
       <div className="bg-white shadow rounded-lg border border-gray-200">
         <table className="w-full text-left border-collapse">
           <thead className="bg-gray-100 text-gray-700 text-sm uppercase">
@@ -51,8 +70,8 @@ const Logs = () => {
                 className="hover:bg-gray-50 transition-colors text-sm"
               >
                 <td className="px-4 py-3 border-b border-gray-200 font-mono text-gray-600">
-
-                  {log.timestamp.toLocaleString().split('T')[0]} {log.timestamp.toLocaleString().split('T')[1].substring(0, 5)}
+                  {log.timestamp.toLocaleString().split("T")[0]}{" "}
+                  {log.timestamp.toLocaleString().split("T")[1].substring(0, 5)}
                 </td>
                 <td className="px-4 py-3 border-b border-gray-200">
                   <span
@@ -73,13 +92,17 @@ const Logs = () => {
 
         {logs.length === 0 && (
           <div className="p-6 text-center text-gray-500">
-            No logs available.
+            No logs available for {selectedDate}.
           </div>
         )}
       </div>
 
-      <div className='flex justify-center fixed bottom-8 right-0 left-0 m-auto'>
-        <Pagination totalPages={totalPage} currentPage={page} onPageChange={setPage}/>
+      <div className="flex justify-center fixed bottom-8 right-0 left-0 m-auto">
+        <Pagination
+          totalPages={totalPage}
+          currentPage={page}
+          onPageChange={setPage}
+        />
       </div>
     </SidebarContentLayout>
   );
