@@ -13,7 +13,7 @@ import {
 } from "recharts";
 import type { RawRSSI } from "../types/model";
 import { SidebarContentLayout } from "../components/layouts/sidebar-content-layout";
-import {getMonitoringData} from "../api/monitoring-service.ts";
+import { getMonitoringData } from "../api/monitoring-service.ts";
 
 interface ChartData {
   time: string;
@@ -29,31 +29,27 @@ interface ChartData {
 }
 
 const Monitoring = () => {
+  // state untuk menyimpan tanggal, data rssi, dan jenis rssi yang dipilih
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [data, setData] = useState<RawRSSI[]>([]);
   const [selectedRssi, setSelectedRssi] = useState<"rssi1" | "rssi2" | "rssi3">(
     "rssi1"
   );
 
+  // ambil data monitoring dari API berdasarkan tanggal yang dipilih
+  const setRSSIData = async () => {
+    const formattedDate = selectedDate.toISOString().split("T")[0];
+    const res = await getMonitoringData(formattedDate);
+    console.log(res.data.data);
+    setData(res.data.data);
+  };
 
-  const setRSSIData = async() => {
-    const formattedDate = selectedDate.toISOString().split('T')[0];
-    const res = await getMonitoringData(formattedDate)
-    console.log(res.data.data)
-    setData(res.data.data)
-  }
-
+  // panggil api ulang setiap kali tanggal berubah
   useEffect(() => {
-    if(data){
-      console.log(data, "data")
-    }
-  }, [data]);
-
-  useEffect(() => {
-    // const newData = generateDailyMockData(selectedDate);
-    setRSSIData().then()
+    setRSSIData().then();
   }, [selectedDate]);
 
+  // ubah format tanggal agar bisa ditampilkan di input date
   const formatDateForInput = (date: Date): string => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -61,28 +57,21 @@ const Monitoring = () => {
     return `${year}-${month}-${day}`;
   };
 
+  // ubah format timestamp jadi jam:menit untuk chart label
   const formatTime = (timestamp: Date): string => {
-    return timestamp.toString().split("T")[1].toString().substring(0,5);
-
+    return timestamp.toString().split("T")[1].toString().substring(0, 5);
   };
 
-  // === Buat data scatter untuk RSSI ===
-  const scatterData = data.flatMap((item) =>
-      {
-        console.log(item, "item")
-        return item[selectedRssi].map((rssi) => ({
-          time: new Date(item.timestamp).getTime(),
-          value: rssi,
-        }))
-      }
-  );
+  // buat data scatter untuk chart rssi (tiap rssi berisi banyak nilai per timestamp)
+  const scatterData = data.flatMap((item) => {
+    console.log(item, "item");
+    return item[selectedRssi].map((rssi) => ({
+      time: new Date(item.timestamp).getTime(),
+      value: rssi,
+    }));
+  });
 
-
-  useEffect(() => {
-    console.log(scatterData, "scatterData")
-  }, [scatterData]);
-
-  // === Data untuk chart lainnya ===
+  // ubah data api jadi format yang cocok untuk line chart (variance, median, mean)
   const chartData: ChartData[] = data.map((item) => ({
     time: formatTime(item.timestamp),
     variance1: item.variance1,
@@ -118,7 +107,6 @@ const Monitoring = () => {
         <div className="max-w-7xl mx-auto">
           <div className="bg-white p-4 mb-6 border border-gray-200">
             <div className="flex flex-col gap-4">
-              {/* Date Selector */}
               <div className="flex items-center gap-4">
                 <label
                   htmlFor="date-selector"
@@ -145,7 +133,7 @@ const Monitoring = () => {
                 </span>
               </div>
 
-              {/* RSSI Selector */}
+              {/* pemilihan jenis rssi */}
               <div className="flex items-center gap-6">
                 <span className="text-sm font-medium text-gray-700">
                   Pilih RSSI:
@@ -171,31 +159,40 @@ const Monitoring = () => {
             </div>
           </div>
 
+          {/* bagian chart utama */}
           <div className="space-y-6">
-            {/* Scatter RSSI */}
             <ChartCard title="RSSI Scatter (dBm)">
               <ResponsiveContainer width="100%" height={300}>
                 <ScatterChart>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="time" type="number" domain={["auto", "auto"]}
-                         tickFormatter={(unixTime) =>
-                             new Date(unixTime).toISOString().split("T")[1].substring(0, 5)
-                         }
+                  <XAxis
+                    dataKey="time"
+                    type="number"
+                    domain={["auto", "auto"]}
+                    tickFormatter={(unixTime) =>
+                      new Date(unixTime)
+                        .toISOString()
+                        .split("T")[1]
+                        .substring(0, 5)
+                    }
                   />
                   <YAxis dataKey="value" />
                   <Tooltip
-                      cursor={{ strokeDasharray: '3 3' }}
-                      wrapperStyle={{ zIndex: 1000, outline: 'none' }} // Style the outer portal-ed div
-                      contentStyle={{
-                        backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                        border: '1px solid #ccc',
-                        padding: '10px',
-                        borderRadius: '3px'
-                      }} // Style the tooltip box
-                      labelStyle={{ color: '#000' }} // Style the time label
-                      labelFormatter={(unixTime) =>
-                          `Time: ${new Date(unixTime).toISOString().split("T")[1].substring(0, 5)}`
-                      }
+                    cursor={{ strokeDasharray: "3 3" }}
+                    wrapperStyle={{ zIndex: 1000, outline: "none" }}
+                    contentStyle={{
+                      backgroundColor: "rgba(255, 255, 255, 0.8)",
+                      border: "1px solid #ccc",
+                      padding: "10px",
+                      borderRadius: "3px",
+                    }}
+                    labelStyle={{ color: "#000" }}
+                    labelFormatter={(unixTime) =>
+                      `Time: ${new Date(unixTime)
+                        .toISOString()
+                        .split("T")[1]
+                        .substring(0, 5)}`
+                    }
                   />
                   <Legend />
                   <Scatter
@@ -205,15 +202,15 @@ const Monitoring = () => {
                       selectedRssi === "rssi1"
                         ? "#3b82f6"
                         : selectedRssi === "rssi2"
-                        ? "#10b981"
-                        : "#f59e0b"
+                          ? "#10b981"
+                          : "#f59e0b"
                     }
                   />
                 </ScatterChart>
               </ResponsiveContainer>
             </ChartCard>
 
-            {/* Variance, Median, Mean tetap pakai LineChart */}
+            {/* 3 line chart untuk metric variance, median, dan mean */}
             {[
               {
                 title: "Variance",

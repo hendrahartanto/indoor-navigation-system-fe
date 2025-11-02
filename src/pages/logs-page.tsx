@@ -9,21 +9,24 @@ const Logs = () => {
   const [page, setPage] = useState(1);
   const [totalPage, setTotalPage] = useState(1);
 
+  // state untuk tanggal yang dipilih (default hari ini)
   const [selectedDate, setSelectedDate] = useState<string>(() => {
     const today = new Date();
     return today.toISOString().split("T")[0];
   });
 
+  // funciton untuk mendapatkan data logs menggunakan API
   const fetchLogs = async () => {
     try {
-      const res = await getLogData(selectedDate, page);
-      setLogs(res.data.data);
-      setTotalPage(res.data.total_pages);
+      const res = await getLogData(selectedDate, page); // panggil API dengan parameter tanggal dan halaman
+      setLogs(res.data.data); // simpan data log
+      setTotalPage(res.data.total_pages); // simpan total halaman untuk pagination
     } catch (error) {
       console.error("Error fetching logs:", error);
     }
   };
 
+  // fetch data setiap tanggal atau halaman berubah
   useEffect(() => {
     fetchLogs().then();
   }, [selectedDate, page]);
@@ -41,19 +44,21 @@ const Logs = () => {
 
   return (
     <SidebarContentLayout title="Logs" subtitle="View all logs">
+      {/* filter tanggal */}
       <div className="mb-5">
         <label className="text-sm text-gray-700 mr-2">Select date:</label>
         <input
           type="date"
           value={selectedDate}
           onChange={(e) => {
-            setPage(1);
+            setPage(1); // reset ke halaman pertama saat ganti tanggal
             setSelectedDate(e.target.value);
           }}
           className="border border-gray-300 rounded-md px-3 py-1 text-sm focus:ring-2 focus:ring-red-500 focus:outline-none"
         />
       </div>
 
+      {/* table untuk menampilkan list log */}
       <div className="bg-white shadow rounded-lg border border-gray-200">
         <table className="w-full text-left border-collapse">
           <thead className="bg-gray-100 text-gray-700 text-sm uppercase">
@@ -73,6 +78,7 @@ const Logs = () => {
                   {log.timestamp.toLocaleString().split("T")[0]}{" "}
                   {log.timestamp.toLocaleString().split("T")[1].substring(0, 5)}
                 </td>
+
                 <td className="px-4 py-3 border-b border-gray-200">
                   <span
                     className={`px-2 py-1 rounded-full text-xs font-medium ${getLogTypeColor(
@@ -82,6 +88,7 @@ const Logs = () => {
                     {log.status}
                   </span>
                 </td>
+
                 <td className="px-4 py-3 border-b border-gray-200 text-gray-800">
                   {log.text}
                 </td>

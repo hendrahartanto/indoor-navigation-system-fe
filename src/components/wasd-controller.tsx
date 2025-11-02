@@ -149,9 +149,8 @@ export default function WasdController({
       <div className="mb-3 flex items-center justify-between border border-gray-200 bg-white/60 p-3 backdrop-blur-md dark:border-gray-200 dark:bg-white/10">
         <div className="flex items-center gap-3">
           <span
-            className={`inline-flex h-2.5 w-2.5 rounded-full ${
-              driveMode ? "bg-emerald-500 animate-pulse" : "bg-gray-300"
-            }`}
+            className={`inline-flex h-2.5 w-2.5 rounded-full ${driveMode ? "bg-emerald-500 animate-pulse" : "bg-gray-300"
+              }`}
             aria-hidden
           />
           <div>
@@ -173,10 +172,9 @@ export default function WasdController({
             setDriveMode((v) => !v);
           }}
           className={`group relative inline-flex h-9 w-20 items-center rounded-full transition
-            ${
-              driveMode
-                ? "bg-gradient-to-r from-blue-600 to-cyan-500"
-                : "bg-gray-300 dark:bg-gray-600"
+            ${driveMode
+              ? "bg-gradient-to-r from-blue-600 to-cyan-500"
+              : "bg-gray-300 dark:bg-gray-600"
             }`}
         >
           <span
@@ -185,16 +183,14 @@ export default function WasdController({
           />
           <span className="sr-only">Toggle drive mode</span>
           <span
-            className={`absolute left-2 text-[10px] font-semibold uppercase ${
-              driveMode ? "opacity-0" : "opacity-70 text-gray-800"
-            }`}
+            className={`absolute left-2 text-[10px] font-semibold uppercase ${driveMode ? "opacity-0" : "opacity-70 text-gray-800"
+              }`}
           >
             Off
           </span>
           <span
-            className={`absolute right-3 text-[10px] font-semibold uppercase text-white ${
-              driveMode ? "opacity-90" : "opacity-0"
-            }`}
+            className={`absolute right-3 text-[10px] font-semibold uppercase text-white ${driveMode ? "opacity-90" : "opacity-0"
+              }`}
           >
             On
           </span>
@@ -206,11 +202,10 @@ export default function WasdController({
           {["W", "A", "S", "D"].map((k) => (
             <kbd
               key={k}
-              className={`rounded px-1.5 py-0.5 font-mono text-[11px] font-semibold ${
-                isActive(k.toLowerCase() as KeyWASD)
+              className={`rounded px-1.5 py-0.5 font-mono text-[11px] font-semibold ${isActive(k.toLowerCase() as KeyWASD)
                   ? "bg-blue-600 text-white"
                   : "bg-gray-800 text-white"
-              }`}
+                }`}
             >
               {k}
             </kbd>
@@ -336,11 +331,10 @@ function Key({
         <span className="pointer-events-none absolute inset-0 -z-10 rounded-2xl bg-blue-100/60 blur-md" />
       )}
       <div
-        className={`flex h-full flex-col items-center justify-center leading-none ${
-          active
+        className={`flex h-full flex-col items-center justify-center leading-none ${active
             ? "font-extrabold text-blue-700 dark:text-blue-300"
             : "font-semibold"
-        }`}
+          }`}
       >
         <div className="text-xl">{label}</div>
         <div className="mt-0.5 text-[11px] text-gray-500">
